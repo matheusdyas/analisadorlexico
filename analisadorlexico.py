@@ -939,8 +939,8 @@ def main():
         tabela_simbolos.push('facaate', 'facaate', 'Nulo')
         tabela_simbolos.push('fimfaca', 'fimfaca', 'Nulo')
         tabela_simbolos.push('fim', 'fim', 'Nulo')
-        tabela_simbolos.push('inteiro', 'inteiro', 'int')
-        tabela_simbolos.push('lit', 'lit', 'lit')
+        tabela_simbolos.push('inteiro', 'inteiro', 'inteiro')
+        tabela_simbolos.push('lit', 'lit', 'literal')
         tabela_simbolos.push('real', 'real', 'real')
         tabela_simbolos.push('$', '$', 'Nulo')
 
