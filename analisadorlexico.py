@@ -4,10 +4,11 @@ import numpy as np
 from copy import deepcopy
 
 i, j, cont = 0, 0, 0
-ponteiro, contador_coluna, contador_linha, final_arquivo = 0, 0, 0, 0
-palavra = ""
-a = ""
-retorno = ""
+ponteiro, contador_coluna, contador_linha, final_arquivo, numTemp, identação = 0, 0, 0, 0, 0, 1
+palavra, a = "", ""
+texto = []
+ErroSemantico = False
+
 
 #          P' P    V    A    LV   D    L   TIPO ES   ARG  CMD  LD   OPRD COND CAB EXP_R CP   R    CP_R
 GOTO = [[None,1   ,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], #00
@@ -593,9 +594,9 @@ class analisador:
                 palavra = arquivo_fonte[j:ponteiro]
                 if self.tabela_simbolos.procura_na_lista(palavra):
                     return self.tabela_simbolos.procura_na_lista(palavra)
-                if not self.l.procura_na_lista(palavra):
-                    l.push('id', palavra, 'Nulo')
-                return self.l.procura_na_lista(palavra)
+                else:
+                    tabela_simbolos.push('id', palavra, 'Nulo')
+                    return self.tabela_simbolos.procura_na_lista(palavra)
             else:
                 return self.q24(5, arquivo_fonte, l)
 
@@ -630,7 +631,7 @@ class analisador:
         if arquivo_fonte[ponteiro].isalpha() or arquivo_fonte[ponteiro].isdigit() or arquivo_fonte == '"' or arquivo_fonte[ponteiro].isspace() or arquivo_fonte[ponteiro]=='\n':
             palavra = arquivo_fonte[j:ponteiro]
             if not self.l.procura_na_lista(palavra):
-                l.push('opr', '<>', 'Nulo')
+                l.push('opr', '<>', '<>')
             return self.l.procura_na_lista(palavra)
         else: 
             return self.q24(1,arquivo_fonte, l)
@@ -645,7 +646,7 @@ class analisador:
         if arquivo_fonte[ponteiro].isalpha() or arquivo_fonte[ponteiro].isdigit() or arquivo_fonte == '"' or arquivo_fonte[ponteiro].isspace() or arquivo_fonte[ponteiro]=='\n':
             palavra = arquivo_fonte[j:ponteiro]
             if not self.l.procura_na_lista(palavra):
-                l.push('opr', '<=', 'Nulo')
+                l.push('opr', '<=', '<=')
             return self.l.procura_na_lista(palavra)
         else: 
             return self.q24(1,arquivo_fonte, l)
@@ -660,7 +661,7 @@ class analisador:
         if arquivo_fonte[ponteiro].isalpha() or arquivo_fonte[ponteiro].isdigit() or arquivo_fonte == '"' or arquivo_fonte[ponteiro].isspace() or arquivo_fonte[ponteiro]=='\n':
             palavra = arquivo_fonte[j:ponteiro]
             if not self.l.procura_na_lista(palavra):
-                l.push('rcb', '<-', 'Nulo')
+                l.push('rcb', '<-', '<-')
             return self.l.procura_na_lista(palavra)
         else: 
             return self.q24(1, arquivo_fonte, l)
@@ -675,7 +676,7 @@ class analisador:
         if arquivo_fonte[ponteiro].isalpha() or arquivo_fonte[ponteiro].isdigit() or arquivo_fonte == '"' or arquivo_fonte[ponteiro].isspace() or arquivo_fonte[ponteiro]=='\n':
             palavra = arquivo_fonte[j:ponteiro]
             if not self.l.procura_na_lista(palavra):
-                l.push('opr', '=', 'Nulo')
+                l.push('opr', '=', '=')
             return self.l.procura_na_lista(palavra)
         else: 
             
@@ -691,7 +692,7 @@ class analisador:
         if arquivo_fonte[ponteiro].isalpha() or arquivo_fonte[ponteiro].isdigit() or arquivo_fonte == '"' or arquivo_fonte[ponteiro].isspace() or arquivo_fonte[ponteiro]=='\n':
             palavra = arquivo_fonte[j:ponteiro]
             if not self.l.procura_na_lista(palavra):
-                l.push('opr', '>', 'Nulo')
+                l.push('opr', '>', '>')
             return self.l.procura_na_lista(palavra)
         if arquivo_fonte[ponteiro] == '=':
             return self.q18(arquivo_fonte, l, tabela_simbolos)
@@ -708,7 +709,7 @@ class analisador:
         if arquivo_fonte[ponteiro].isalpha() or arquivo_fonte[ponteiro].isdigit() or arquivo_fonte == '"' or arquivo_fonte[ponteiro].isspace() or arquivo_fonte[ponteiro]=='\n':
             palavra = arquivo_fonte[j:ponteiro]
             if not self.l.procura_na_lista(palavra):
-                l.push('opr', '>=', 'Nulo')
+                l.push('opr', '>=', '>')
             return self.l.procura_na_lista(palavra)
         else: 
             return self.q24(1, arquivo_fonte, l)
@@ -723,7 +724,7 @@ class analisador:
         if arquivo_fonte[ponteiro].isalpha() or arquivo_fonte[ponteiro].isdigit() or arquivo_fonte == '"' or arquivo_fonte[ponteiro].isspace() or arquivo_fonte[ponteiro]=='\n':
             palavra = arquivo_fonte[j:ponteiro]
             if not self.l.procura_na_lista(palavra):
-                l.push('opm', palavra, 'Nulo')
+                l.push('opm', palavra, palavra)
             return self.l.procura_na_lista(palavra)
         else: 
             return self.q24(1, arquivo_fonte, l)
@@ -849,14 +850,14 @@ class analisador:
             ana.erro(cod)
         
         for item in terminais:
-            if item[0] == a:
+            if item[0] == retorno_scanner.classe:
                 a = int(item[1])
         
         while True:
             pilha_copia = deepcopy(pilha)
             s = int(pilha_copia.pop())
             for item in terminais:
-                if item[0] == a:
+                if item[0] == retorno_scanner.classe:
                     a = int(item[1])
             if ACTION[s][a][0] == 'S':
                 t = int(ACTION[s][a][1:])
@@ -885,10 +886,13 @@ class analisador:
                 imprimir = tuple(gramatica[x])
                 imprimir = " ".join(imprimir)
                 print("Regra "+str(x) +": "+str(imprimir))
+                #self.regraSemântica(x, retorno_scanner, pilhaSemântica)
             elif ACTION[s][a] == 'Acc':
                 imprimir = tuple(gramatica[1])
                 imprimir = " ".join(imprimir)
                 print("Regra 1: "+str(imprimir))
+                if not ErroSemantico:
+                    self.analisadorSemantico()
                 break
             else:
                 if ACTION[s][a][0] == 'E':
@@ -902,7 +906,7 @@ class analisador:
         global a
         while not a in tabeladeERRO[pos_erro]:
             if a !="$":
-                retorno_scanner = self.scanner(arquivo_fonte, l, tabela_simbolos)
+                retorno_scanner = ana.scanner(arquivo_fonte, l, tabela_simbolos)
                 a = retorno_scanner.classe   
                 if str(retorno_scanner.classe)[0:4] == "ERRO":
                     print("Classe: " + retorno_scanner.classe + ", lexema: " + retorno_scanner.lexema + ", tipo: " + retorno_scanner.tipo + ".")
@@ -915,6 +919,176 @@ class analisador:
 
     def imprime_erro(self, imprimir):
         print("Erro: "+ imprimir + ". Linha " + str(contador_linha) + ', coluna ' + str(contador_coluna -len(palavra) +1) + '.')
+
+
+
+    def criaidentação(identação):
+        global texto 
+        texto = ''
+        for j in range(identação):
+            texto += '\t'
+        return texto
+
+    def regrasSemanticas(numRegra, retorno_scanner, pilhaSemantica):
+        global contador_linha, contador_coluna, numTemp, identação, ErroSemantico, texto
+        
+        if(numRegra == 5):
+            texto.append('\n\n\n')
+            ErroSemantico = False 
+        
+        elif(numRegra == 6):
+            idn = self.criaidentação(identação)
+            L: id.tipo <- TIPO.tipo
+            texto.append(";\n")
+            ErroSemantico = False
+
+        elif(numRegra == 7):
+            idn = self.criaidentação(identação)
+            
+            texto.append(", "+L.id)
+            ErroSemantico = False
+        
+        elif(numRegra == 8):
+            idn = self.criaidentação(identação)
+            
+            texto.append(" "+L.id)
+            ErroSemantico = False
+
+        elif(numRegra == 9):
+            idn = self.criaidentação(identação)
+            TIPO.tipo <- inteiro.tipo
+            texto.append(idn+TIPO.tipo)
+            ErroSemantico = False
+        
+        elif(numRegra == 10):
+            idn = self.criaidentação(identação)
+            TIPO.tipo <- real.tipo
+            texto.append(idn+TIPO.tipo)
+            ErroSemantico = False
+        elif(numRegra == 11):
+            idn = self.criaidentação(identação)
+            TIPO.tipo <- literal.tipo
+            texto.append(idn+TIPO.tipo)
+            ErroSemantico = False
+        
+        elif(numRegra == 13):
+            idn = self.criaidentação(identação)
+            if(L: id.tipo == None):
+                print('Erro: Variável não declarada. Linha: ' + str(contador_linha)+', coluna '+(contador_coluna)+'.\n')
+                ErroSemantico = True
+            else:
+                if(L: id.tipo == 'literal'):
+                    texto.append(idn+'scanf("%s", '+id.tipo+');\n')
+                    ErroSemantico = False
+                elif(L: id.tipo == 'int'):
+                    texto.append(idn+'scanf("%d", &'+id.tipo+');\n')
+                    ErroSemantico = False
+                elif(L: id.tipo == 'real'):
+                    texto.append(idn+'scanf("%lf", &'+id.tipo+');\n')
+                    ErroSemantico = False
+
+        elif (numRegra == 14):
+            ARG = token(escreva)
+            texto.append("printf("+ARG.lexema+');\n')
+            ErroSemantico = False
+        
+        elif (numRegra == 15):
+            ARG.atributos = literal.atributos
+            ErroSemantico = False
+        
+        elif (numRegra == 16):
+            ARG.atributos = num.atributos
+            ErroSemantico = False
+
+        elif(numRegra == 17):
+            idn = self.criaidentação(identação)
+            if(L: id.tipo == None):
+                print('Erro: Variável não declarada. Linha: ' + str(contador_linha)+', coluna '+(contador_coluna)+'.\n')
+                ErroSemantico = True
+            else:
+                ARG.atributos <- id.atributos
+                ErroSemantico = False
+
+        elif (numRegra == 19):
+            if(id.atributos != None)
+                ARG.atributos = id.atributos
+                if (id.tipo == L.tipo)
+                    texto.append('('+OPRD.lexema+rcb.tipo+LD.lexema+')\n')
+                    ErroSemantico = False
+                else:
+                    print('Erro: Tipos diferentes para atribuição. Linha: ' + str(contador_linha)+', coluna '+(contador_coluna)+'.\n')
+                    ErroSemantico = True
+            else:
+                print('Erro: Variável não declarada. Linha: ' + str(contador_linha)+', coluna '+(contador_coluna)+'.\n')
+                ErroSemantico = True
+        elif (numRegra == 20):
+            oprd2 = desempilha.OPRD
+            oprd1 = desempilha.OPRD
+            if(oprd1.tipo == oprd2.tipo)
+                LD.lexema = 'T'+str(numTemp)
+                texto.append('T'+str(numTemp)+'='+oprd1.lexema+opm.tipo+oprd2.lexema+'\n')
+                ErroSemantico = False
+            else:
+                print('Erro: Operandos com tipos incompatíveis. Linha: ' + str(contador_linha)+', coluna '+(contador_coluna)+'.\n')
+                ErroSemantico = True
+
+        elif (numRegra == 21):
+            LD.atributos = OPRD.atributos
+            ErroSemantico = False
+
+        elif(numRegra == 22):
+            idn = self.criaidentação(identação)
+            if(L: id.tipo == None):
+                OPRD.atributos <- id.atributos
+                ErroSemantico = True
+            else:
+                ARG.atributos <- id.atributos
+                ErroSemantico = False
+
+        elif (numRegra == 23):
+            OPRD.atributos = num.atributos
+            ErroSemantico = False
+
+        elif (numRegra == 25):
+            identação = identação - 1
+            idn = self.criaidentação(identação)
+            texto.append(idn + '}\n')
+            ErroSemantico = False
+
+        elif (numRegra == 26):
+            texto.append('if('+EXPR.lexema+') {\n')
+            identação = identação + 1
+            ErroSemantico = False
+
+        elif (numRegra == 27):
+            oprd2 = desempilha.OPRD
+            oprd1 = desempilha.OPRD
+            if(oprd1.tipo == oprd2.tipo)
+                LD.lexema = 'T'+str(numTemp)
+                texto.append('T'+str(numTemp)+'='+oprd1.lexema+opr.tipo+oprd2.lexema+'\n')
+                ErroSemantico = False
+            else:
+                print('Erro: Operandos com tipos incompatíveis. Linha: ' + str(contador_linha)+', coluna '+(contador_coluna)+'.\n')
+                ErroSemantico = True
+
+    def analisadorSemantico():
+        codigo = open('codigo.txt','w')
+        codigo.write('#include<stdio.h>\ntypedef char literal[256];\n\nvoid main(void)\n{\n')
+        codigo.write('\t/*----Variaveis temporarias----*/\n')
+        for i in range(numTemporario):
+            codigo.write('\tint T'+ str(i) + ';\n')
+        codigo.write('\t/*-----------------------------*/\n')
+        for i in texto:
+            codigo.write(i)
+        codigo.write('}')
+        codigo.close()
+        #conversão código txt para c
+        arquivoC = open('codigo.c', 'w')
+        codigo = open('codigo.txt')
+        for line in codigo:
+            arquivoC.write(line)
+        arquivoC.close()
+        codigo.close()
 
 def main():
     if not os.path.exists('fonte.txt'):
