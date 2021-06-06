@@ -835,6 +835,7 @@ class analisador:
      
     def parser(self, ana, l, tabela_simbolos, fonte, retorno_scanner):    
         pilha: List[str] = []
+        pilhaSemantica: List[str] = []
         pilha.append(0)
         global a
         global palavra
@@ -886,7 +887,7 @@ class analisador:
                 imprimir = tuple(gramatica[x])
                 imprimir = " ".join(imprimir)
                 print("Regra "+str(x) +": "+str(imprimir))
-                #self.regraSemântica(x, retorno_scanner, pilhaSemântica)
+                self.regraSemântica(x, retorno_scanner, pilhaSemântica)
             elif ACTION[s][a] == 'Acc':
                 imprimir = tuple(gramatica[1])
                 imprimir = " ".join(imprimir)
